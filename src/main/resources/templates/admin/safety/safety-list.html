@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+  	<meta charset="UTF-8">
+  	<!-- title 지정 -->
+  	<title>CareOps+ | 안전관리 현황</title>
+  	<link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+  	<link th:href="@{/css/web-settings.css}" rel="stylesheet">
+  	  
+  	<style type="text/css">
+  		/* 테이블 */
+      .layout-table { 
+      	width: 1340px; 
+      	height: auto; 
+      	border: 3px solid #13254C; 
+      	border-radius: 20px; 
+      	overflow: hidden;
+      	margin-bottom: 30px;
+      	text-align: center;
+     	}
+      .table { 
+        margin: 0 auto 40px auto;
+      	display: inline-table;
+      	width: 650px;
+      	text-align: center;
+      }
+      .table-row { line-height: 30px; }
+      .table-head { font-size: 20px; font-weight: 600; }
+      .btn-css { width: 80px; border-radius: 50px; }
+      tr { height: 30px;  border-bottom: 1px solid #d9d9d9; }
+  	  .smFacilityName { width: 200px; }
+      
+  		/* 층버튼 */
+      .btn-floor-line {display: flex; flex-flow: wrap; margin: 20px auto; width: 500px; }
+      .btn-floor { margin: 10px 10px; width: 80px;}
+      .btn-floor.active { color: black; background-color:white; }
+      .btn { background-color: #13254C; color: white; }
+      .btn:hover { border: 1px solid #13254C; }
+      
+      /* 세부항목 선택 */
+      .data { margin: 50px 0; }
+      .data-select { 
+				width: 300px; 
+				height: 35px;
+				font-size: 20px; 
+				padding-left: 10px;
+				margin-left: auto; 
+				border-radius: 5px; 
+				background-color: #13254C; 
+				color: white; 
+			}
+			
+      /* 안전관리현황 */
+      .btn-status {
+       	margin: 0 auto 50px auto; 
+      	width: 650px; 	
+       	display: flex; 
+      }
+      .btn-add { margin-left: auto; background-color: #13254C; color: white; }
+			
+  	</style>
+  </head>
+
+	<body>
+		<!-- 사이드바 -->
+		<th:block th:replace="~{/common/side-bar}"></th:block>
+		
+		<!-- 컨텐츠 영역 -->
+		<div class="content">
+			<!-- section -->
+			<div class="section">
+				<!-- 제목 -->
+				<h1 class="title">안전관리 <img alt="이동" th:src="@{/img/icon-next-b.png}" class="title-next"> 관리 현황</h1>
+				
+				<!-- 안전관리 목록 -->
+				<div class="layout-table">
+					<!-- 층수 선택 (1 ~ 10층) -->
+					<div class="btn-floor-line">
+                      <th:block th:each="num : ${#numbers.sequence(1, 10)}">
+                        <div th:classappend="${num} > 5 ? 'floor-row-2' : 'floor-row-1'">
+                          <button 
+                            id="btn-floor"
+                            class="btn btn-floor" 
+                            th:value="${num}"
+                            th:text="${num} + 'F'" 
+                           >
+                          </button>
+                        </div>
+                      </th:block>
+                    </div>
+					
+					<!-- 세부항목 선택 -->
+					<div class="data">
+				    <select id="smList" name="smList" class="data-select" aria-label="Default select" >
+                        <th:block th:each="smList, stat : ${smList}" >
+				    	 <option th:name="${smList}" th:text=${smList} th:selected="${smList} == '소화기' ? true : false" ></option>
+                        </th:block>
+				    </select>
+					</div>
+					
+					<!-- 점검 항목 게시판 -->
+					<table class="table table-hover">
+					  <thead class="table-group">
+					    <tr class="table-row table-head">
+					      <th scope="col">시설 번호</th>
+					      <th scope="col">설치 구역</th>
+					      <th scope="col">관리 현황</th>
+					    </tr>
+					  </thead>
+					  <tbody id="statusBody" class="table-group-se">
+					  	<tr class="table-row" th:each="list : ${safetyListAll}" >
+					    	<!-- 시설번호 -->
+					    	<td th:text="${list.smFacilityNo}" ></td>
+					      <!-- 시설 이름 -->
+					    	<td class="smFacilityName" th:text="${list.smFacilityName}" ></td>
+					      <!-- 상태 -->
+    				      	<td >
+    				      		<button  name="smStatus" type="button" th:if="${list.smStatus}" class="btn btn-css btn-success"  disabled>양호</button>
+    				      		<button  name="smStatus" type="button" th:unless="${list.smStatus}" class="btn btn-css btn-danger"  disabled>점검 요망</button> 
+    				      	</td>
+					    </tr>
+					  </tbody>
+					</table>
+					
+					<!-- 버튼 -->
+					<th:block th:if="${ session.userType == 'admin' && session.department.contains('안전') }">
+    				    <div class="btn-status">
+    			           <button th:onclick="'location.href=\'./safety-list-status\''" class="btn btn-add" type="button">현황 수정</button>
+    				    </div>
+					</th:block>
+				</div>
+			</div>
+		</div>
+  	<script type="text/javascript"    >
+      // 층 버튼 클릭 시 해당 층의 데이터만 가져오는 함수
+      // 페이지가 로드될 때 기본적으로 1층의 데이터 가져오기
+      const smListElement = document.getElementById("smList");
+      let num = 1; // 기본값으로 1층을 설정
+      
+      // 층 버튼 클릭 시 value 가져오기
+      document.querySelectorAll('.btn-floor').forEach(button => {
+          button.onclick = function() {
+              num = this.value; 							// 클릭된 버튼의 value를 num에 저장
+              fetchChecklist(smListElement.value, num); 	// 클릭 시 데이터 가져오기
+          };
+      });
+      
+      // 페이지 로드 시 기본 데이터 가져오기
+      document.addEventListener('DOMContentLoaded', () => {
+          fetchChecklist(smListElement.value, num); 		// 기본적으로 smList의 선택값과 1층 데이터 가져오기
+      });
+      
+      // 층 버튼 클릭 시 해당 층의 데이터만 가져오는 함수
+      function fetchChecklist(smList, num) {
+          //console.log('smList:', smList, 'num:', num);	// 확인용 로그
+      
+          // URL 형식: admin/safety-list/{smList}/{num}
+          const userType = window.location.pathname.split('/')[1];
+          let url = '';
+          if(userType === 'admin'){
+            url = `/admin/safety-list/${smList}/${num}`;
+          } else {
+           	url= `/manager/safety-list/${smList}/${num}`;
+          }
+          
+          //console.log('Fetching URL:', url); 				// URL 확인
+      
+          fetch(url)
+              .then(response => {
+                  if (!response.ok) {
+                      throw new Error('네트워크의 연결상태를 확인해주세요.');
+                  }
+                  return response.json();
+              })
+              .then(data => {
+                  const statusBody = document.getElementById('statusBody');
+                  statusBody.innerHTML = ''; 				// 기존 내용 지우기
+      
+                  // 새로운 데이터 추가
+                  data.forEach(list => {
+                      const row = document.createElement('tr');
+                      row.className = 'table-row data-row';
+      
+                      // 새로운 행을 만들어 데이터 추가
+                      row.innerHTML = `
+                          <td>${list.smFacilityNo}</td>
+                          <td class="smFacilityName" >${list.smFacilityName}</td>
+                          <td>
+                              <button name="smStatus" type="button" class="btn btn-css ${list.smStatus ? 'btn-success' : 'btn-danger'}" disabled>
+                                  ${list.smStatus ? '양호' : '점검 요망'}
+                              </button>
+                          </td>
+                      `;
+                      statusBody.appendChild(row);
+                  });
+              })
+              .catch(error => console.error('Error fetching checklist:', error));
+      
+          // 다른 버튼들의 active 클래스 제거
+          document.querySelectorAll('.btn-floor').forEach(btn => {
+              btn.classList.remove('active');  
+          });
+      
+          // 클릭된 버튼에 active 클래스 추가
+          const clickedButton = document.querySelector(`.btn-floor[value="${num}"]`); // 클릭된 버튼의 value 사용
+          if (clickedButton) {
+              clickedButton.classList.add('active');  
+          }
+      }
+      
+      // 선택값 변경 시 기본 층 데이터 가져오기
+      smListElement.addEventListener('change', (event) => {
+          const selectedSmList = event.target.value; 		// 현재 선택된 smList 값
+          fetchChecklist(selectedSmList, num); 				// 기본적으로 선택된 smList와 num으로 데이터 가져오기
+      });
+    </script>
+  	<script th:src="@{/js/bootstrap.bundle.min.js}" ></script>
+  	 
+	</body>
+
+</html>

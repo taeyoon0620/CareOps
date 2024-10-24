@@ -1,0 +1,344 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>CareOps+ | 비밀번호 변경</title>
+<link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+<link th:href="@{/css/web-settings.css}" rel="stylesheet">
+
+	<style>
+	.layout-table {
+		padding: 40px;
+		background-color: #fff;
+		border-radius: 10px;
+		overflow: auto;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+	
+	.dropdown-divider { width: auto; }
+	
+	.info-container {
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		gap: 30px;
+		width: 60%;
+	}
+	
+	.info-row {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		width: 100%;
+		align-items: baseline;
+	}
+	
+	label {
+		font-weight: 500; /* 기본 폰트 굵기 */
+		color: #666;
+		font-size: 23px;
+		width: 150px; /* 라벨 너비 증가 */
+		text-align: left; /* 왼쪽 정렬 */
+		white-space: nowrap; /* 줄바꿈 방지 */
+	}
+	
+	.info-field {
+		flex: 1;
+		padding: 10px;
+		margin-bottom: 15px;
+		border-radius: 4px;
+		border: 1px solid #13254C;
+		background-color: #13254C;
+		color: #fff;
+		font-size: 20px;
+		box-sizing: border-box;
+		width: calc(100% - 160px);
+		font-weight: 600;
+	}
+	
+	.btn {
+	    padding: 12px;
+	    background-color: #13254C;
+	    color: white;
+	    font-size: 18px;
+	    border: 2px solid transparent; /* 초기 border 설정 */
+	    border-radius: 10px;
+	    cursor: pointer;
+	    transition: background-color 0.3s, border-color 0.3s; /* 배경색과 테두리 색상에 대한 전환 */
+	    width: 48%;
+	    font-weight: 700;
+	    box-sizing: border-box; /* border-box 설정 */
+	}
+	
+	hr {
+		width: 60%;
+		margin: 2rem 0;
+		background-color: #000;
+		height: 1px;
+		border: 0;
+	}
+	
+	.btn:hover { 
+	    border: 2px solid #13254C; 
+	    background-color: white; 
+	    color: #13254C 
+	}
+
+	/* 모달 닫기 버튼 hover 시 스타일 추가 */
+	.modal-header .btn-close:hover {
+	    color: #ffffff; /* 텍스트 색상을 파란색으로 */
+	    background-color: white; /* 배경을 흰색으로 */
+	    border: 2px solid #13254C; /* 파란색 테두리 추가 */
+	}
+	
+	.btn-container {
+		width: 60%;
+		display: flex;
+		justify-content: space-between;
+		margin-top: 30px;
+	}
+	
+	.password-container {
+		position: relative;
+		display: flex;
+		align-items: center;
+		width: 100%;
+	}
+	
+	.toggle-password {
+		position: absolute;
+		right: 5px;
+		transform: translateY(-50%);
+		background: none;
+		border: none;
+		cursor: pointer;
+	}
+	
+	/* 모달 스타일 추가 */
+	.modal.fade .modal-dialog { transform: translate(-50%, -89%) !important; }
+	.modal-header .btn-close:hover { color: white; /* 텍스트 색상을 흰색으로 */ }
+	
+	.modal-content {
+		background-color: white;
+		border-radius: 10px;
+		border: none;
+		margin: 0 auto;
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+	}
+	
+	.modal-dialog {
+	    position: fixed;
+	    top: 50%;
+	    left: 50%;
+	    transform: translate(-50%, -50%);
+	    width: 90%;
+	    max-width: 600px;
+	    margin: 0;
+	}
+	
+	.modal-header { border-bottom: none; background-color: #13254C; color:white; padding: 20px; }
+	.modal-title { font-size: 18px;}	
+	.modal-body { padding: 30px 0; font-size: 20px; text-align: center; color: black; }
+	.modal-footer { border-top: none; padding: 15px 0 0 0; justify-content: center; background-color: #f1f1f1;}
+	
+	/* 모달 배경 스타일 */
+	.modal-backdrop { background-color: rgba(0, 0, 0, 0.5); }
+	
+	/* 모달이 화면 맨 위로 오도록 z-index 조정 */
+	.modal { z-index: 1050; }
+	.modal-backdrop { z-index: 1040; }
+	
+	/* 모달 내 버튼 스타일 */
+	.modal-footer .btn {
+		padding: 15px 20px; 
+		font-size: 16px; 
+		border-color: #fff; 
+	}
+	
+</style>
+</head>
+
+<body>
+	<!-- 사이드바 -->
+	<th:block th:replace="~{/common/side-bar}"></th:block>
+
+	<!-- 컨텐츠 영역 -->
+	<div class="content">
+		<div class="section">
+			<h1 class="title">비밀번호 변경</h1>
+			<form id="passwordChangeForm" th:action="@{'/' + ${userType} + '/mypage-change-pw'}" method="post">
+				<div class="layout-table">
+					<hr>
+					<div class="info-container">
+						<div class="info-row">
+						    <label for="current_password" class="info-label">기존 비밀번호</label>
+						    <div class="password-container">
+						        <input type="password" id="current_password"
+						               name="currentPassword" class="info-field"
+						               th:value="${currentPassword}" readonly>
+						        <button type="button" class="toggle-password"
+						                onclick="togglePassword('current_password')">🔐</button>
+						    </div>
+						</div>
+						<div class="info-row">
+						    <label for="new_password" class="info-label">새로운 비밀번호</label>
+						    <div class="password-container">
+						        <input type="password" id="new_password" name="newPassword"
+						               class="info-field" required placeholder="8자 이상 16자 이하" minlength="8" maxlength="16">
+						        <button type="button" class="toggle-password"
+						                onclick="togglePassword('new_password')">🔐</button>
+						    </div>
+						</div>
+						<div class="info-row">
+						    <label for="confirm_password" class="info-label">비밀번호 재입력</label>
+						    <div class="password-container">
+						        <input type="password" id="confirm_password"
+						               name="confirmPassword" class="info-field" required 
+									   placeholder="8자 이상 16자 이하" minlength="8" maxlength="16">
+						        <button type="button" class="toggle-password"
+						                onclick="togglePassword('confirm_password')">🔐</button>
+						    </div>
+						</div>
+					</div>
+					<hr>
+					<div class="btn-container">
+						<button type="button" class="btn" onclick="goToDashboard()">뒤로가기</button>
+						<button type="button" class="btn" onclick="changePassword()">비밀번호
+							변경</button>
+					</div>
+				</div>
+			</form>
+		</div>
+		
+		<!-- 비밀번호 변경 실패 모달 -->
+		<div class="modal fade" id="passwordChangeErrorModal" tabindex="-1"
+			role="dialog" aria-labelledby="passwordChangeErrorModalLabel"
+			aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="passwordChangeErrorModalLabel">비밀번호
+							변경 오류</h5>
+					</div>
+					<div class="modal-body text-center">
+						<p id="passwordChangeErrorMessage"></p>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-primary"
+							data-bs-dismiss="modal">닫기</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<!-- 비밀번호 변경 성공 모달 -->
+		<div class="modal fade" id="passwordChangeSuccessModal" tabindex="-1" role="dialog" aria-labelledby="passwordChangeSuccessModalLabel" aria-hidden="true">
+		    <div class="modal-dialog modal-dialog-centered" role="document">
+		        <div class="modal-content">
+		            <div class="modal-header">
+		                <h5 class="modal-title" id="passwordChangeSuccessModalLabel">비밀번호 변경 성공</h5>
+		                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+		            </div>
+		            <div class="modal-body text-center">
+		                <p>비밀번호가 성공적으로 변경되었습니다.</p>
+		            </div>
+		            <div class="modal-footer">
+		                <button type="button" class="btn btn-primary" onclick="redirectToMyPage()">확인</button>
+		            </div>
+		        </div>
+		    </div>
+		</div>
+
+	</div>
+
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script th:inline="javascript">
+
+		var userType = /*[[${userType}]]*/
+		
+		// 사이드바 dropup 초기화
+		$(document).ready(function() {
+		    $('.dropup-toggle').dropdown();
+		});
+		
+		// 비밀번호 유효성 검사 함수
+		function isValidPassword(password) {
+		    const regex = /^(?=.*[a-z])(?=.*[A-Z0-9]).{8,16}$/;
+		    return regex.test(password);
+		}
+
+		// 비밀번호 필드 가시성 토글 함수
+		function togglePassword(fieldId) {
+		    const field = document.getElementById(fieldId);
+		    field.type = field.type === "password" ? "text" : "password";
+		}
+
+		// 비밀번호 변경 함수
+		let isSubmitting = false;
+
+		function changePassword() {
+		    const currentPassword = $('#current_password').val();
+		    const newPassword = $('#new_password').val();
+		    const confirmPassword = $('#confirm_password').val();
+		    // 현재 비밀번호가 비어 있는지 확인
+		    if (!currentPassword) {
+		        showPasswordChangeError('현재 비밀번호를 입력해주세요.');
+		        return;
+		    }
+		    // 새 비밀번호 유효성 검사
+		    if (!isValidPassword(newPassword)) {
+		        showPasswordChangeError('비밀번호는 최소 8자, 최대 16자이며 소문자, 대문자 또는 숫자를 포함해야 합니다.');
+		        return;
+		    }
+		    // 새 비밀번호와 비밀번호 재입력 값이 일치하는지 확인
+		    if (newPassword !== confirmPassword) {
+		        showPasswordChangeError('새 비밀번호와 확인 비밀번호가 일치하지 않습니다.');
+		        return;
+		    }
+		    isSubmitting = true;
+		    // 비밀번호 변경 요청
+			    $.ajax({
+					url: '/' + userType + '/mypage-change-pw',  // userType 변수 사용
+			        type: 'POST',
+			        contentType: 'application/json',
+			        data: JSON.stringify({
+			            currentPassword: currentPassword,
+			            newPassword: newPassword,
+			            confirmPassword: confirmPassword
+			        }),
+			        success: function(response) {
+			            if (response.success) {
+			                $('#passwordChangeSuccessModal').modal('show');
+			            } else {
+			                showPasswordChangeError(response.message);
+			            }
+			        },
+					error: function(xhr, status, error) {
+					    console.error("Error details:", xhr.responseText);
+					    showPasswordChangeError(xhr.responseJSON?.message || '오류가 발생했습니다. 나중에 다시 시도해주세요.');
+					}
+			    });
+			}
+			
+
+		// 오류 메시지를 표시하는 함수
+		function showPasswordChangeError(message) {
+		    $('#passwordChangeErrorMessage').text(message);
+		    $('#passwordChangeErrorModal').modal('show');
+		}
+
+		// 성공 모달을 닫고 mypage로 리다이렉트하는 함수
+		function redirectToMyPage() {
+		    window.location.href = '/' + userType + '/dash-board';
+		}
+		
+		function goToDashboard() {
+		    window.location.href = '/' + userType + '/dash-board';
+		}
+	</script>
+</body>
+</html>

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymleaf.org" lang="ko">
+	<head>
+		<meta charset="UTF-8">
+		<!-- 관리자 manager -->
+		<title>CareOps+ | 대시보드</title>
+		<link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&display=swap" rel="stylesheet">
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+		
+		<link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+		<link th:href="@{/css/style.css}" rel="stylesheet">
+		<link th:href="@{/css/web-settings.css}" rel="stylesheet">
+		
+		<style type="text/css">
+			/* 콘텐츠 영역 레이아웃 잡기 */
+			.content { display: grid; grid-template-columns: 1fr 1fr; width: 1340px; } /* 두 개의 동일한 열 생성 */ 
+			.s-m { margin-right: 20px; }
+		
+			/* 기본 세팅 */
+			.title { width: 700px; height: 47px; margin-bottom: 30px; }
+			.sub-title { font-size: 30px; }
+			.today { font-size: 20px; }
+			.status { text-align: right; margin: 10px 0 40px 0; }
+			.icon-next { width: 30px; margin: auto 5px; }
+			.icon-nex-claim { width: 25px; height: 25px; margin: 0 10px; margin-bottom: 5px; }
+		
+			/* 서비스 미리보기 */
+			.service { margin-bottom: 35px; width: 700px; display: flex; justify-content: space-between; } 
+			.box { 
+				padding: 10px;
+				width: 160px; 
+				height: 100px; 
+				background-color: #13254C; 
+				border-radius: 10px;
+				/* display: inline-block; */
+		 	}
+ 		 	.box-text { font-size: 20px; color: white; }
+		 	.box-sub { display:flex; font-size: 30px; font-weight: 900; }
+		 	
+		 	/* 의료기기 상태 현황 */
+		 	.medical-table { padding: 20px; margin-top: 70px; width: 700px; height: 515px; border: 3px solid #13254C; border-radius: 10px; }
+		 	
+		 	/* 캘린더 */
+		 	.calendar { 
+				display: flex;
+				margin: 77px 0 30px 0; 
+				width: 500px; 
+				height: 300px; 
+				border: 3px solid #13254C; 
+				border-radius: 10px; 
+				background-color: #13254C;
+			}
+			.calendar_content { pointer-events : none; }
+			
+		 	/* 내 민원 */
+		 	.claim-add { display: flex; width: 500px; }
+		 	.claim-add-next { margin-left: auto; margin-bottom: 5px; }
+		 	
+		 	.claim-content-zero { 
+		 		display: grid;
+		 		padding: 20px; 
+		 		margin-bottom: 15px; 
+		 		width: 500px; 
+		 		height: 180px; 
+		 		background-color: #13254C;
+		 		border: 3px solid #13254C; 
+		 		border-radius: 10px; 
+		 		color: white;
+	 		}
+		 	.claim-content-info-zero { display: contents; }
+		 	.icon-box { width: 80px; margin: auto; }
+	 		.claim-content-title-zero { font-size: 25px; margin: auto; }
+		 	
+		 	.claim-content { 
+		 		display: flex;
+		 		padding: 20px; 
+		 		margin-bottom: 15px; 
+		 		width: 500px; 
+		 		height: 100px; 
+		 		background-color: #13254C; 
+		 		border: 3px solid #13254C; 
+		 		border-radius: 10px; 
+		 		color: white;
+	 		}
+	 		.claim-content-info { padding: 5px auto; height: 60px; margin-right: 20px; }
+	 		.claim-content-title-info { display: flex; align-items: center; }
+	 		.claim-content-title { font-size: 25px; margin-bottom: 5px; }
+	 		.claim-content-detail { font-size: 20px; }
+	 		.claim-content-btn { 
+	 			margin-left: auto;
+	 			width: 100px;
+	 			border-radius: 40px; 
+	 			border: 2px solid white; 
+	 			font-size: 18px;
+	 			/* margin: 0 auto; */
+	 			font-weight: 600;
+	 			color: #13254C;
+	 			background-color: white;
+	 			pointer-events: none;
+ 			}
+ 			.claim-btn-false { background-color: #13254C; color: white; }
+		</style>
+	</head>
+
+	<body>
+		<!-- 사이드바 -->
+		<th:block th:replace="~{/common/side-bar}"></th:block>
+		
+		<!-- 컨텐츠 영역 -->
+		<div class="content">
+			<div class="section s-m">
+				
+    		<!-- 로그인 이후 담당 부서와 담당자 이름 제어 -->
+				<h1 class="title" th:text="${ session.department + ' ' + session.userName + '님, 반갑습니다.' }"></h1>
+				
+				<!-- 서비스 미리보기 -->
+				<div class="service">
+					<!-- 민원 -->
+					<div class="box box-text">
+						<p>마이 페이지</p>
+						<a th:href="@{ '/manager/mypage' }" class="box-text box-sub">이동 &rarr;</a>
+					</div>
+					
+					<!-- 민원 -->
+					<div class="box box-text">
+						<p>부서 민원 보러가기</p>
+						<div class="box-flex">
+							<a th:href="@{/manager/claim-list}" class="box-text box-sub" th:text="'총 ' + ${ claimCnt } + '건 &rarr;'"></a>
+						</div>
+					</div>
+					
+					<!-- 의료기기 -->
+					<div class="box box-text">
+						<p>부서 담당 의료기기</p>
+						<div class="box-flex">
+							<a th:href="@{ './medical-list/' + ${ session.department } }"
+								 class="box-text box-sub" th:text="'총 ' + ${ medicalCnt } + '개 &rarr;'"></a>
+						</div>
+					</div>
+					
+					<!-- 예약 시설물 -->
+					<div class="box box-text">
+						<p>시설 예약 목록</p>
+						<div class="box-flex">
+							<a th:href="@{./facility-dept-list}" class="box-text box-sub">이동 &rarr;</a>
+						</div>
+					</div>
+				</div>
+				
+				<!-- 의료기기 상태 현황  -->
+				<div class="medical-table">
+					<!-- 의료기기 상태 날짜 -->
+					<div class="status">
+						<p class="sub-title">의료기기 상태 현황</p>
+						<p class="today"></p>
+					</div>
+					
+					<!-- 세로 막대 그래프 -->
+					<canvas id="medicalChart"></canvas>
+				</div>
+			</div>
+			
+			<div class="section">
+				<!-- 캘린더 -->
+				<div class="calendar">
+					<section class="ftco-section">
+						<div class="calendar-first" id="calendar_first">
+					    <div class="calendar_header">
+				        <button class="switch-month switch-left"> <i class="fa fa-chevron-left"></i></button>
+				         <h2></h2>
+				        <button class="switch-month switch-right"> <i class="fa fa-chevron-right"></i></button>
+					    </div>
+					    <div class="calendar_weekdays"></div>
+					    <div class="calendar_content"></div>
+						</div>
+					</section>
+				</div>
+				
+				<!-- 민원 -->
+				<div class="claim">
+					<th:block th:if="${ claimList != null && !claimList.isEmpty() }">
+						<div class="claim-add">
+							<a th:href="@{'/' + ${session.userType} + '/claim-list'}" class="claim-add-next">더보기 &rarr;</a>
+						</div>
+						<th:block th:if="${ claimList.size() > 3 }">
+				 			<div class="claim-content" th:each="claim : ${ claimList.subList(0, 3) }">
+				 				<div class="claim-content-info">
+				 					<div class="claim-content-title-info">
+						 				<p class="claim-content-title" th:text="${ claim.claimCategoryName }"></p>
+						 				<th:block th:if="${ claim.claimCategoryName.equals('의료기기') }">
+							 				<img alt="이동" th:src="@{/img/icon-next-w.png}" class="icon-nex-claim">
+							 				<p class="claim-content-title" th:text="${ claim.claimCategoryStatus }"></p>
+						 				</th:block>
+				 					</div>
+					 				<p class="claim-content-detail" 
+					 					th:text="${ #strings.length(claim.claimContent) > 25 ? #strings.substring(claim.claimContent, 0, 20) + ' ...' : claim.claimContent }"></p>
+				 				</div>
+				 				<button class="btn claim-content-btn claim-btn-false" th:if="${ claim.claimApprove == false }">접수 대기</button>
+				 				<button class="btn claim-content-btn claim-btn-true" th:unless="${ claim.claimApprove == false }">접수 완료</button>
+				 			</div>
+						</th:block>
+						<th:block th:unless="${ claimList.size() > 3 }">
+							<div class="claim-content" th:each="claim : ${ claimList }">
+				 				<div class="claim-content-info">
+				 					<div class="claim-content-title-info">
+						 				<p class="claim-content-title" th:text="${ claim.claimCategoryName }"></p>
+						 				<th:block th:if="${ claim.claimCategoryName.equals('의료기기') }">
+							 				<img alt="이동" th:src="@{/img/icon-next-w.png}" class="icon-nex-claim">
+							 				<p class="claim-content-title" th:text="${ claim.claimCategoryStatus }"></p>
+						 				</th:block>
+				 					</div>
+					 				<p class="claim-content-detail" 
+					 					th:text="${ #strings.length(claim.claimContent) > 25 ? #strings.substring(claim.claimContent, 0, 20) + ' ...' : claim.claimContent }"></p>
+				 				</div>
+				 				<button class="btn claim-content-btn claim-btn-false" th:if="${ claim.claimApprove == false }">접수 대기</button>
+				 				<button class="btn claim-content-btn claim-btn-true" th:unless="${ claim.claimApprove == false }">접수 완료</button>
+				 			</div>
+						</th:block>
+					</th:block>
+					
+					<th:block th:unless="${ claimList != null && !claimList.isEmpty() }">
+						<div class="claim-content-zero" >
+			 				<div class="claim-content-info-zero">
+				 				<img alt="상자" th:src="@{/img/box.png}" class="icon-box">
+				 				<p class="claim-content-title-zero">작성한 민원 요청이 없습니다 :)</p>
+			 				</div>
+			 			</div>
+					</th:block>
+				</div>
+			</div>
+		</div>
+		
+		<script th:src="@{/js/jquery.min.js}" ></script>
+	  <script th:src="@{/js/main.js}" ></script>
+	  <script th:src="@{/js/bootstrap.bundle.min.js}" ></script>
+  	<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+  	
+	  <script type="text/javascript">
+			// className 이 today 인 p 태그 오늘 날짜로 기본값 설정
+			var pList = document.querySelectorAll('.today');
+			
+			pList.forEach(function (item) {
+				item.innerText = new Date().toISOString().substring(0, 10);
+			})
+			
+			// 세로 막대 그래프
+			var ctx = document.getElementById('medicalChart');
+	    var myChart = new Chart(ctx, {
+	      type: 'bar',
+	      data: {
+	        labels: ['정상', '점검', '수리', '노후', '만료'],
+	        datasets: [{
+	          label: '현황 ',
+	          data: ['[[${MedicalStatus.normal}]]', '[[${MedicalStatus.check}]]', 
+	        	  '[[${MedicalStatus.repair}]]', '[[${MedicalStatus.old}]]', '[[${MedicalStatus.expire}]]'],
+	          backgroundColor: [
+	            'rgba(0, 204, 0, 0.7)',    // 정상
+	            'rgba(255, 159, 64, 0.7)', // 점검
+	            'rgba(54, 162, 235, 0.7)', // 수리
+	            'rgba(255, 206, 86, 0.7)', // 노후
+	            'rgba(255, 99, 132, 0.7)'  // 만료
+	          ],
+	          borderColor: [
+	            'rgba(0, 204, 0, 1)',    // 정상
+	            'rgba(255, 159, 64, 1)', // 점검
+	            'rgba(54, 162, 235, 1)', // 수리
+	            'rgba(255, 206, 86, 1)', // 노후
+	            'rgba(255, 99, 132, 1)'  // 만료
+	          ],
+	          borderWidth: 1
+	        }]
+	      },
+	      options: {
+	    	  legend: {
+    	        display: false // label 숨기기
+    	    },
+	        scales: {
+	          yAxes: [{
+	            ticks: {
+	              beginAtZero: true
+	            }
+	          }]
+	        },
+	      }
+	    });
+	  </script>
+	  
+	</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymleaf.org">
+	<head>
+		<meta charset="UTF-8">
+		<!-- title 지정 -->
+		<title>CareOps+ | 의료기기 상세</title>
+		<link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+		<link th:href="@{/css/web-settings.css}" rel="stylesheet">
+		
+		<style type="text/css">
+			/* layout-table */
+			.layout-table { height: 630px; }
+		
+			/* 버튼 - 의료기기 상태 */
+			.btn-css { border-radius: 50px; width: 90px; height: 50px; font-size: 20px; pointer-events: none; } 
+			
+			/* 데이터 테이블 */
+			.data-table-a { width: 1000px; margin: 50px auto; }
+			.data-input-a { 
+				width: 830px; 
+				height: 35px;
+				font-size: 20px; 
+				padding-left: 10px;
+				margin-left: auto; 
+				border-radius: 5px; 
+				background-color: #13254C; 
+				color: white; 
+			}
+			
+			.data-table-b { display: flex; width: 1000px; margin: 50px auto; }
+ 			.data { display: flex; margin-bottom: 20px; }
+			.data-t-2 { margin-left: auto; }
+			.data-title { font-size: 25px; margin-right: 40px; }
+			.data-input { 
+				width: 300px; 
+				font-size: 20px; 
+				padding-left: 10px;
+				margin-left: auto; 
+				border-radius: 5px; 
+				background-color: #13254C; 
+				color: white; 
+			}
+			
+			/* 버튼 - 뒤로가기, 수정 */
+			.btn-table { width: 1340px; }
+			.btn-status { margin: 30px auto; text-align: center; }
+			.btn-group { display: inline-block; width: 80px; margin-right: 15px; background-color: #13254C; color: white; }
+			.btn-group:hover { border: 1px solid #13254C; }
+		</style>
+	</head>
+
+	<body>
+		<!-- 사이드바 -->
+		<th:block th:replace="~{/common/side-bar}"></th:block>
+		
+		<!-- 컨텐츠 영역 -->
+		<div class="content">
+			<!-- section -->
+			<div class="section">
+			
+				<!-- 제목 -->
+				<h1 class="title">의료기기 관리 <img alt="이동" th:src="@{/img/icon-next-b.png}" class="title-next"> 상세</h1>
+				
+				<div class="layout-table">
+					<div class="btn-status" th:switch="${ medicalDevice.lmdStatus }">
+		      		<button th:case="정상" type="button" class="btn btn-css btn-success">정상</button>
+		      		<button th:case="수리필요" type="button" class="btn btn-css btn-primary">수리필요</button>
+		      		<button th:case="점검요망" type="button" class="btn btn-css btn-secondary">점검요망</button>
+		      		<button th:case="노후" type="button" class="btn btn-css btn-warning">노후</button>
+		      		<button th:case="만료" type="button" class="btn btn-css btn-danger">만료</button>
+					</div>
+					
+					<div class="data-table-a">
+						<div class="data">
+							<p class="data-title">장비대분류명</p>
+							<input type="text" th:value="${ medicalDevice.lmdMajorCateName }" class="data-input-a" disabled>
+						</div>
+						<div class="data">
+							<p class="data-title">장비세분류명</p>
+							<input type="text" th:value="${ medicalDevice.lmdMinorCateName }" class="data-input-a" disabled>
+						</div>
+						<div class="data">
+						 	<p class="data-title">모델명</p>
+							<input type="text" th:value="${ medicalDevice.lmdDevicesName }" class="data-input-a" disabled>
+						</div>
+						<div class="data">
+						 	<p class="data-title">등록일</p>
+							<input type="text" th:value="${ medicalDevice.lmdDate }" class="data-input-a" disabled>
+						</div>
+					</div>
+					
+					<div class="data-table-b">
+						<div class="data-t-1">
+							<div class="data">
+								<p class="data-title">장비대분류코드</p>
+								<input type="text" th:value="${ medicalDevice.lmdMajorCateCode }" class="data-input" disabled>
+							</div>
+							<div class="data">
+								<p class="data-title">장비허가번호</p>
+								<input type="text" th:value="${ medicalDevice.lmdLicenseNumber }" class="data-input" disabled>
+							</div>
+							<div class="data">
+							 	<p class="data-title">담당 부서</p>
+								<input type="text" th:value="${ medicalDevice.lmdManagerDeptPart }" class="data-input" disabled>
+							</div>
+							<div class="data">
+							 	<p class="data-title">점검자</p>
+								 	<th:block th:each="admin : ${ adminList }" th:if="${ medicalDevice.lmdAdminName == admin.adminName }">
+										<input type="text" th:value="${ admin.adminDeptName } + ' (' + ${ admin.adminName } + ')'" class="data-input" disabled>
+								 	</th:block>
+								 	<th:block th:if="${ medicalDevice.lmdAdminName == null }">
+										<input type="text" th:value="${ medicalDevice.lmdAdminName }" class="data-input" disabled>
+								 	</th:block>
+							</div>
+						</div>
+						
+						<div class="data-t-2">
+							<div class="data">
+								<p class="data-title">장비세분류코드</p>
+								<input type="text" th:value="${ medicalDevice.lmdMinorCateCode }" class="data-input" disabled>
+							</div>
+							<div class="data">
+								<p class="data-title">장비수</p>
+								<input type="text" th:value="${ medicalDevice.lmdDeviceCnt }" class="data-input" disabled>
+							</div>
+							<div class="data">
+								<p class="data-title">담당자</p>
+								<input type="text" th:value="${ medicalDevice.lmdManagerName }" class="data-input" disabled>
+							</div>
+							<div class="data">
+							 	<p class="data-title">점검일</p>
+								<input type="text" th:value="${ medicalDevice.lmdLastCheckDate }" class="data-input" disabled>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<div class="btn-table btn-status">
+					<button th:onclick="|location.href='@{ '/' + ${ session.userType } + '/medical-list'}'|" class="btn btn-group" type="button">뒤로 가기</button>
+					<th:block th:if="${ session.userType == 'admin' && session.department.contains('의료기기') }">
+ 						<button th:onclick="|location.href='@{'/admin/medical-edit/' + ${ medicalDevice.lmdMinorCateCode }}'|" class="btn btn-group" type="button">수정</button>
+					</th:block>
+				</div>
+			</div>
+		</div>
+		
+		<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+	</body>
+</html>

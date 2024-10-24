@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+	<head>
+		<meta charset="UTF-8">
+		<!-- title 지정 -->
+		<title>CareOps+ | 시설물 예약 신청</title>
+		<link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+		<link th:href="@{/css/web-settings.css}" rel="stylesheet">
+		
+		<style type="text/css">
+			/* layout-table */
+			.layout-table { height: 400px; }
+		
+			/* 데이터 테이블 */
+			.data-table { display: flex; width: 1000px; margin: 120px auto; }
+			.data-title { font-size: 25px; margin-right: 40px; }
+			.data-input { 
+				width: 300px; 
+				font-size: 20px; 
+				padding-left: 10px;
+				margin-left: auto; 
+				border-radius: 5px; 
+				background-color: #13254C; 
+				color: white; 
+			}
+			.data { display: flex; margin-bottom: 20px; }
+			.data-t-2 { margin-left: auto; }
+			
+			/* 버튼 - 뒤로가기, 수정 */
+			.btn-table { width: 1340px; }
+			.btn-status { margin: 30px auto; text-align: center; }
+			.btn-group { display: inline-block; width: 80px; margin-right: 15px; background-color: #13254C; color: white; }
+			.btn-group:hover { border: 1px solid #13254C; }
+		</style>
+	</head>
+
+	<body>
+		<!-- 사이드바 -->
+		<th:block th:replace="~{/common/side-bar}"></th:block>
+		
+		<!-- 컨텐츠 영역 -->
+		<div class="content">
+			<!-- section -->
+			<div class="section">
+			
+				<!-- 제목 -->
+				<h1 class="title">시설 예약 시스템<img alt="이동" th:src="@{/img/icon-next-b.png}" class="title-next">신청</h1>
+				
+				<form th:attr="action=@{'/manager/facility-add'}" method="post">
+					<div class="layout-table">
+						<div class="data-table">
+						
+							<!-- 층 / 시설이름 / 시설 번호 -->
+							<div class="data-t-1">
+								<div class="data">
+									<p class="data-title">층 F</p>
+									<select id="floor-select" name="facilityFloor" class="data-input" aria-label="Default select" onchange="onFacilityChange()" oninput="checkFields()">
+						        <option value="" selected>==층 선택==</option>
+						        <option th:each="idx : ${#numbers.sequence(1,10)}" th:value="${ idx }" th:text="${ idx }"></option>
+							    </select>
+								</div>
+								<div class="data">
+									<p class="data-title">시설 이름</p>
+							    <select id="floor-name-select" name="facilityName" class="data-input" aria-label="Default select" oninput="checkFields()">
+						        <option value="" selected>==시설 선택==</option>
+							    </select>
+								</div>
+								<div class="data">
+								 	<p class="data-title">시설 번호</p>
+									<input type="text" id="facility-no" name="facilityNo" class="data-input" readonly="readonly" oninput="checkFields()">
+								</div>
+							</div>
+							
+							<!-- 예약부서 / 담당자 / 예약날짜 -->
+							<div class="data-t-2">
+								<div class="data">
+								 	<p class="data-title">담당 부서</p>
+								 	<input type="hidden" th:value="${ session.deptNo }" name="facilityManagerDeptNo">
+								 	<input type="text" th:value="${ session.department }" name="facilityManagerDeptName" class="data-input" readonly="readonly" oninput="checkFields()">
+								</div>
+								<div class="data">
+									<p class="data-title">담당자</p>
+								 	<input type="hidden" th:value="${ session.userId }" name="facilityManagerId">
+								 	<input type="text" th:value="${ session.userName }" name="facilityManagerName" class="data-input" readonly="readonly" oninput="checkFields()">
+								</div>
+								<div class="data">
+									<p class="data-title">예약 날짜</p>
+									<input type="date" id="current-date" name="facilityReservationDate" class="data-input" oninput="checkFields()">
+								</div>
+							</div>
+						</div>
+					</div>
+					
+					<div class="btn-table btn-status">
+						<button onclick="history.back()" class="btn btn-group" type="button">뒤로 가기</button>
+						<button id="submit-button" class="btn btn-group" type="submit" disabled>신청 완료</button>
+					</div>
+				</form>
+			</div>
+		</div>
+		
+		<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+		
+		<script type="text/javascript">
+			// [오늘 날짜로 기본값 설정]
+			document.getElementById('current-date').value = new Date().toISOString().substring(0, 10);
+			
+			// [층 선택 후 시설 이름, 시설 번호가 동적으로 추가되는 함수]
+			function onFacilityChange() {
+				var floorSelect = document.getElementById('floor-select');
+				var floorNameSelect = document.getElementById('floor-name-select');
+				var selectedfloorSelect = floorSelect.options[floorSelect.selectedIndex].text; 
+				
+				// 시설 이름 선택 초기화
+				floorNameSelect.innerHTML = '<option value="" selected>==시설 선택==</option>';
+				
+				// 부서 이름이 선택되었으면 담당자 옵션을 동적으로 추가
+				if (floorSelect !== "==시설 선택==") { // 기본 선택이 아닌 경우
+					fetch('./getfindByFacilityList?facilityFloor=' + encodeURIComponent(selectedfloorSelect))
+						.then(response => response.json())
+						.then(facilities => { // facilities라는 변수로 JSON 응답 받기
+                facilities.forEach(function(f) {
+                    var option = document.createElement('option');
+                    option.value = f.facilityNo;
+                    option.text = f.facilityName;
+                    floorNameSelect.appendChild(option); // 옵션 추가
+                });
+            })
+					.catch(error => {
+						console.error('error msg :', error);
+					})
+				}
+				
+				// 시설 선택 후 시설 번호 값 지정
+				document.getElementById('floor-name-select').addEventListener('change', function() {
+					var selectedOption = this.options[this.selectedIndex];
+					document.getElementById("facility-no").value = selectedOption.value; 
+					checkFields();
+				});
+			}
+		
+			// 모든 필드 체크 함수
+      function checkFields() {
+	      const facilityFloor = document.getElementById('floor-select').value;
+	      const facilityName = document.getElementById('floor-name-select').value;
+	      const facilityNo = document.querySelector('input[name="facilityNo"]').value;
+	      
+	      const facilityManagerDeptName = document.querySelector('input[name="facilityManagerDeptName"]').value;
+	      const facilityManagerName = document.querySelector('input[name="facilityManagerName"]').value;
+	      const facilityReservationDate = document.querySelector('input[name="facilityReservationDate"]').value;
+	
+	      const submitButton = document.getElementById('submit-button');
+	
+	      // 모든 필드가 채워졌는지 확인
+	      if (facilityFloor && facilityName && facilityNo && facilityManagerDeptName && facilityManagerName && facilityReservationDate) {
+          submitButton.disabled = false; // 버튼 활성화
+	      } else {
+        	submitButton.disabled = true;  // 버튼 비활성화
+	      }
+      }
+			
+  	 // 페이지 로드 시 필드 체크
+      window.onload = function() {
+          checkFields(); // 초기 상태 체크
+      };
+
+      // 모든 입력 필드에 oninput 이벤트 추가
+      document.querySelectorAll('.data-input').forEach(function(input) {
+          input.addEventListener('input', checkFields);
+      });
+
+		</script>
+		
+	</body>
+</html>

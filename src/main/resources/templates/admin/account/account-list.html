@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymleaf.org">
+	<head>
+		<meta charset="UTF-8">
+		<title>CareOps+ | 담당자 목록 </title>
+		<link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+		<link th:href="@{/css/web-settings.css}" rel="stylesheet">
+		
+		<style type="text/css">
+			.layout-table { height: 100%; padding-bottom: 10px; margin-bottom: 50px; }
+			.table-cover { height: 610px; }
+			.table-basic-style { width: 1200px; margin: 40px auto 20px auto; font-size: 18px; }
+			.tr-style th { border-bottom: 1px solid #d9d9d9; text-align: center; font-weight: 600; font-size: 20px; }
+			.tr-style tr, td { border-bottom: 1px solid #d9d9d9; height: 50px; line-height: 30px; text-align: center; }
+			.th-part{ width: 250px; }
+			.th-name{ width: 205px; }
+			.manager-edit{ background-color: #13254C; color: #fff; }
+			.manager-edit:hover { border: 1px solid #13254C ; background-color: #fff; color: #13254C; }
+			.button-cover { margin-top: 10px; width: 1270px; text-align: right; }
+			.add-button { text-align: center; margin-left: 15px; border: 1px solid #14254C; background-color: #14254c; color: #FFF; }
+			.add-button:hover { border: 1px solid #13254C; background-color: #FFF; color: #14254C; }
+		</style>
+	</head>
+
+	<body>
+		<!-- 사이드바 -->
+		<th:block th:replace="~{/common/side-bar}"></th:block>
+		
+		<!-- 컨텐츠 영역 -->
+		<div class="content">
+			
+			<!-- section -->
+			<div class="section">
+				<!-- 제목 -->
+				<h1 class="title">담당자 <img alt="이동" th:src="@{/img/icon-next-b.png}" class="title-next"> 목록</h1>
+				<div class="layout-table">
+					<div class="table-cover">
+						<table class ="table table-hover table-basic-style">
+							<thead>
+								<tr class="tr-style">
+									<th>부서 번호</th>
+									<th class="th-part">부서 파트</th>
+									<th class="th-name" >부서 이름</th>
+									<th>아이디</th>
+									<th>이름</th>
+									<th>연락처</th>
+									<th:block th:if="${ session.userType == 'admin' && session.department.contains('담당자') }">
+										<th>담당자 변경</th>
+									</th:block>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="manager : ${manager}"  class="tr-style">
+						      <td th:text="${manager.managerDeptNo}"></td> 
+									<td th:text="${manager.managerDeptPart}"></td>
+									<td th:text="${manager.managerDeptName}"></td>
+									<td th:text="${manager.managerId}"></td>
+									<td th:text="${manager.managerName}"></td>
+									<td th:text="${manager.managerPhoneNumber}"></td>
+									<td>
+										<th:block th:if="${ session.userType == 'admin' && session.department.contains('담당자') }">
+											<a class="btn manager-edit" th:href="@{./account-edit/{managerId}(managerId=${manager.managerId})}">담당자 변경</a>
+										</th:block>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="button-cover">
+						<th:block th:if="${ session.userType == 'admin' && session.department.contains('담당자') }">
+							<button class="btn add-button" type="button" onclick="location.href='account-add'">담당자 등록</button>
+						</th:block>
+					</div>
+					          <!-- 페이지 네이션 -->
+					<div class="page" > 
+					  <nav aria-label="Page navigation">
+					    <ul class="pagination">
+					      <!-- 맨 앞으로 이동 -->
+					      <li class="page-item">
+					        <a class="page-link " th:href="@{./account-list?page=1}" aria-label="Previous">
+					          <span aria-hidden="true">&#171;</span>
+					        </a>
+					      </li>
+
+					      <!-- 이전 페이지 이동 -->
+					      <li class="page-item">
+					       <a class="page-link"  th:href="@{./account-list(page=${paging.currentPage - 1 == 0 ? 1 : paging.currentPage - 1})}">&#60;</a>
+					      </li>
+
+					      <!-- 숫자 -->
+					      <th:block th:each="page : ${ #numbers.sequence(paging.startPage, paging.endPage)}" >
+					        <li class="page-item">
+					          <a class="page-link" th:href="@{./account-list?page=} + @{${page}}"
+					              th:text="${ page }" th:classappend="${paging.currentPage eq page} ? 'disabled' : ''" ></a>
+					        </li>
+					      </th:block>
+
+					      <!-- 다음 페이지 이동 -->
+					      <li class="page-item" >
+					         <a class="page-link" th:href="@{./account-list(page=${paging.currentPage + 1 >= totalPages ? totalPages : paging.currentPage + 1})}" >&#62;</a> 
+					      </li>
+
+					      <!-- 맨 끝으로 이동 -->
+					      <li class="page-item">
+					        <a class="page-link" th:href="@{./account-list?page={totalPages}(totalPages = ${totalPages})}" aria-label="Next">
+					          <span aria-hidden="true">&#187;</span>
+					        </a>
+					      </li>
+					    </ul>
+					  </nav>
+					</div>
+					
+					<div class="search-box" >
+						<form class="category-search-box" th:attr="action=@{ '/' + ${session.userType} + '/account-list/search' }"
+							method="get">
+							<label class="" for="column"></label>
+							<select id="filter" name="filter">
+								<option value="MangerDeptName">부서명</option>
+								<option value="ManagerName">담당자</option>
+							</select>
+							<label for="value"></label>
+							<input class="input" type="search" name="value" id="search" placeholder="">
+							<input class="input" type="submit" id="search-submit" value="검색">
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+
+	<script th:src="@{/js/bootstrap.bundle.min.js}" ></script>
+</html>
